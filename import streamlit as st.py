@@ -1,15 +1,14 @@
-import pandas as pd
-pip install -r requirements.txt
 import streamlit as st
+import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier, plot_tree
-from sklearn.metrics import accuracy_score, precision_score, recall_score
+from sklearn.metrics import accuracy_score
 
-def load_data("disease_trends_india_cleaned_encoded.xlsx"):
-    data = pd.read_excel(file_path, sheet_name="Sheet1")
+def load_data(file_path):
+    data = pd.read_excel(file_path)
     return data
 
 def preprocess_data(data):
@@ -19,7 +18,7 @@ def preprocess_data(data):
     
     for col in categorical_columns:
         le = LabelEncoder()
-        data[col] = le.fit_transform(data[col].astype(str))  # Convert to string before encoding
+        data[col] = le.fit_transform(data[col].astype(str))
         label_encoders[col] = le
     
     scaler = StandardScaler()
@@ -29,14 +28,15 @@ def preprocess_data(data):
     
     data[numerical_columns] = scaler.fit_transform(data[numerical_columns])
     
-    X = data.drop(columns=['Disease Name'], errors='ignore')  # Target variable not defined, assuming Disease Name is not a feature
-    y = data['Number of Cases']  # Assuming 'Number of Cases' is the target variable
+    X = data.drop(columns=['Disease Name'], errors='ignore')
+    y = data['Number of Cases']  
     
     return X, y, scaler, label_encoders, numerical_columns, categorical_columns
 
 def compute_information_gain(model, X, y):
     return dict(zip(X.columns, model.feature_importances_))
 
+# Load dataset
 data = load_data("/mnt/data/disease_trends_india_cleaned_encoded.xlsx")
 X, y, scaler, label_encoders, numerical_columns, categorical_columns = preprocess_data(data)
 
@@ -64,16 +64,12 @@ if selected_features:
         st.write("🔹 Features with *higher IG values* contribute more to the decision-making process.")
     else:
         st.write("⚠ No valid Information Gain could be calculated. Check the dataset!")
-
+    
     y_pred = clf.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
-    precision = precision_score(y_test, y_pred, average='weighted', zero_division=0)
-    recall = recall_score(y_test, y_pred, average='weighted', zero_division=0)
-
+    
     st.sidebar.subheader("📊 Decision Tree Performance")
     st.sidebar.write(f"*Accuracy:* {accuracy:.2f}")
-    st.sidebar.write(f"*Precision:* {precision:.2f}")
-    st.sidebar.write(f"*Recall:* {recall:.2f}")
 
     st.subheader("📌 Decision Tree Visualization")
     plt.figure(figsize=(12, 6))

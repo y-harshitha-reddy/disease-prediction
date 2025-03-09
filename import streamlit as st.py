@@ -7,7 +7,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor, plot_tree
 from sklearn.metrics import accuracy_score, classification_report, mean_squared_error, r2_score
 from sklearn.feature_selection import mutual_info_classif, mutual_info_regression
-from scipy.stats import entropy
 from sklearn.preprocessing import LabelEncoder
 
 # Load dataset

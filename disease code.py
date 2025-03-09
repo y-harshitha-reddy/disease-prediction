@@ -66,7 +66,7 @@ def train_model(X, y, model_choice, model_type):
         model = LinearRegression()
     else:
         st.error("Invalid model selection for the chosen type.")
-        return None, None, None
+        return None, None, None, None
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     model.fit(X_train, y_train)
@@ -101,6 +101,13 @@ if selected_features:
             st.subheader("📊 Model Performance")
             st.write(f"📉 MSE: {mse:.2f}")
             st.write(f"📈 R² Score: {r2:.2f}")
+            plt.figure(figsize=(10, 6))
+            plt.scatter(y_test, y_pred, color='blue', alpha=0.5)
+            plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)
+            plt.xlabel("Actual Number of Cases")
+            plt.ylabel("Predicted Number of Cases")
+            plt.title("Predicted vs Actual Number of Cases")
+            st.pyplot(plt)
         else:
             accuracy = accuracy_score(y_test, y_pred)
             precision = precision_score(y_test, y_pred, average='weighted', zero_division=0)

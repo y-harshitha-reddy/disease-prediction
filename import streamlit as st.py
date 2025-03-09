@@ -18,7 +18,7 @@ from statsmodels.tsa.holtwinters import ExponentialSmoothing
 # Load dataset with caching
 @st.cache_data
 def load_data():
-    df = pd.read_excel("disease_trends_india_cleaned.xlsx")  # Ensure the file exists
+    df = pd.read_excel("disease_trends_india_cleaned_encoded.xlsx")  # Ensure the file exists
     return df
     from sklearn.preprocessing import LabelEncoder
 

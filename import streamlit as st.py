@@ -26,6 +26,12 @@ def load_data():
 
 df = load_data()
 
+# Encode categorical columns
+label_encoder = LabelEncoder()
+df["Disease Name"] = label_encoder.fit_transform(df["Disease Name"].astype(str))
+
+df.fillna(method='ffill', inplace=True)  # Handle missing values
+
 # Sidebar
 st.sidebar.title("🔬 Disease Prediction Dashboard")
 option = st.sidebar.radio("Select Model Type", ["Classification", "Regression"])
@@ -37,11 +43,7 @@ st.dataframe(df.head())
 # Feature selection
 features = ['Year', 'Total Cases', 'Total Deaths', 'Monthly Cases']
 X = df[features].fillna(df[features].median())
-
-disease_mapping = {disease: idx for idx, disease in enumerate(df["Disease Name"].unique())}
-df["Disease Label"] = df["Disease Name"].map(disease_mapping)
-
-y_classification = df["Disease Label"]
+y_classification = df["Disease Name"]
 y_regression = df["Total Cases"]
 
 X_train_c, X_test_c, y_train_c, y_test_c = train_test_split(X, y_classification, test_size=0.2, random_state=42)
@@ -59,7 +61,7 @@ if option == "Classification":
     st.text(classification_report(y_test_c, y_pred_c))
     
     fig, ax = plt.subplots(figsize=(12, 6))
-    plot_tree(clf, feature_names=features, class_names=list(disease_mapping.keys()), filled=True, fontsize=6)
+    plot_tree(clf, feature_names=features, filled=True, fontsize=6)
     st.pyplot(fig)
 
 elif option == "Regression":

@@ -9,7 +9,7 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.metrics import mean_squared_error, r2_score
 
 # Load data
-data = pd.read_excel(r"disease_trends_india_cleaned_encoded.xlsx")
+data = pd.read_excel(r"C:\Users\91965\Downloads\disease_trends_india_cleaned_encoded.xlsx")
 
 # Preprocess data for regression
 def preprocess_data_regression(data):

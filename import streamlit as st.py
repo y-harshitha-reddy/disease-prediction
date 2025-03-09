@@ -3,9 +3,10 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor, plot_tree
 from sklearn.metrics import accuracy_score, classification_report, mean_squared_error, r2_score
+from sklearn.feature_selection import mutual_info_classif
 
 # Load dataset
 @st.cache_data
@@ -27,55 +28,51 @@ st.dataframe(df.head())
 features = ['Year', 'Number of Cases', 'Number of Deaths', 'Comorbidities', 'Monthly Cases']
 X = df[features]
 
+# Ensure all features are numeric
+X = X.apply(pd.to_numeric, errors='coerce')
+X.fillna(X.median(), inplace=True)  # Fill missing values
+
+# Encode disease names for classification
 disease_mapping = {disease: idx for idx, disease in enumerate(df["Disease Name"].unique())}
 df["Disease Label"] = df["Disease Name"].map(disease_mapping)
 
-y_classification = df["Disease Label"]
+# Target variables
+y_classification = df["Disease Label"].astype(int)  # Ensure target is integer
 y_regression = df["Number of Cases"]
 
+# Train-Test Split
 X_train_c, X_test_c, y_train_c, y_test_c = train_test_split(X, y_classification, test_size=0.2, random_state=42)
 X_train_r, X_test_r, y_train_r, y_test_r = train_test_split(X, y_regression, test_size=0.2, random_state=42)
-# Handle missing values
-X_train_c.fillna(X_train_c.median(), inplace=True)
-y_train_c.fillna(y_train_c.mode()[0], inplace=True)
-
-# Convert all features to numeric
-X_train_c = X_train_c.apply(pd.to_numeric, errors='coerce')
-X_train_c.fillna(0, inplace=True)  # Fill any remaining NaNs
-
-# Ensure target labels are integers
-y_train_c = y_train_c.astype(int)
-
-# Train the classification model
-clf = DecisionTreeClassifier(max_depth=5, random_state=42)
-clf.fit(X_train_c, y_train_c)  # This should now work without errors
-
 
 if option == "Classification":
     st.write("## 🤖 Decision Tree Classification Model")
-    
-    clf = DecisionTreeClassifier(max_depth=5, random_state=42)
+
+    clf = DecisionTreeClassifier(max_depth=5, random_state=42, criterion='entropy')
     clf.fit(X_train_c, y_train_c)
     y_pred_c = clf.predict(X_test_c)
-    
-    st.write("### Accuracy Score:", accuracy_score(y_test_c, y_pred_c))
+
+    # Model Accuracy
+    st.write("### ✅ Accuracy Score:", accuracy_score(y_test_c, y_pred_c))
     st.text("Classification Report:")
     st.text(classification_report(y_test_c, y_pred_c))
-    
+
+    # Decision Tree Visualization
     fig, ax = plt.subplots(figsize=(12, 6))
     plot_tree(clf, feature_names=features, class_names=list(disease_mapping.keys()), filled=True, fontsize=6)
     st.pyplot(fig)
 
 elif option == "Regression":
     st.write("## 📈 Decision Tree Regression Model")
-    
+
     reg = DecisionTreeRegressor(max_depth=5, random_state=42)
     reg.fit(X_train_r, y_train_r)
     y_pred_r = reg.predict(X_test_r)
-    
-    st.write("### R2 Score:", r2_score(y_test_r, y_pred_r))
-    st.write("### Mean Squared Error:", mean_squared_error(y_test_r, y_pred_r))
-    
+
+    # Regression Metrics
+    st.write("### 🔢 R2 Score:", r2_score(y_test_r, y_pred_r))
+    st.write("### ❌ Mean Squared Error:", mean_squared_error(y_test_r, y_pred_r))
+
+    # Actual vs Predicted Visualization
     fig, ax = plt.subplots(figsize=(8, 5))
     plt.scatter(y_test_r, y_pred_r, alpha=0.5)
     plt.xlabel("Actual Cases")
@@ -83,9 +80,10 @@ elif option == "Regression":
     plt.title("Actual vs Predicted Cases")
     st.pyplot(fig)
 
-# Feature Importance
-st.write("## 🔥 Feature Importance")
-feature_importance = pd.Series(clf.feature_importances_, index=features).sort_values(ascending=False)
+# Feature Importance using Information Gain (Entropy)
+st.write("## 🔥 Feature Importance (Information Gain)")
+info_gain = mutual_info_classif(X, y_classification)
+feature_importance = pd.Series(info_gain, index=features).sort_values(ascending=False)
 st.bar_chart(feature_importance)
 
 # Correlation Heatmap

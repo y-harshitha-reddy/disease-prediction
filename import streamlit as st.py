@@ -10,7 +10,7 @@ from sklearn.metrics import accuracy_score, classification_report, mean_squared_
 # Load dataset
 @st.cache_data
 def load_data():
-    df = pd.read_excel("C:\Users\91965\Desktop\disease prediction\disease_trends_india_updated.xlsx")
+    df = pd.read_excel("disease_trends_india_updated.xlsx")
     return df
 
 df = load_data()

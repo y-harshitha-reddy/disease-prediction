@@ -43,7 +43,7 @@ st.dataframe(df.head())
 # Feature selection
 features = ['Year', 'Number of Cases', 'Number of Deaths', 'Monthly Cases']
 X = df[features].fillna(df[features].median(numeric_only=True))
-y_regression = df["Total Cases"]
+y_regression = df["Number of Cases"]
 
 X_train_c, X_test_c, y_train_c, y_test_c = train_test_split(X, y_classification, test_size=0.2, random_state=42)
 X_train_r, X_test_r, y_train_r, y_test_r = train_test_split(X, y_regression, test_size=0.2, random_state=42)
@@ -100,7 +100,7 @@ future_years = 5
 for disease in df["Disease Name"].unique():
     disease_df = df[df["Disease Name"] == disease]
     
-    if disease_df["Total Cases"].dtype == 'O':  # Convert non-numeric cases
+    if disease_df["Number of Cases"].dtype == 'O':  # Convert non-numeric cases
         disease_df["Total Cases"] = pd.to_numeric(disease_df["Total Cases"], errors='coerce')
     
     model = ExponentialSmoothing(disease_df["Total Cases"], trend="add", seasonal=None, damped_trend=True)

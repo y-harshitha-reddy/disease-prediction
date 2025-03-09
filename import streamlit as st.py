@@ -7,9 +7,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor, plot_tree
 from sklearn.metrics import accuracy_score, classification_report, mean_squared_error, r2_score
 from sklearn.feature_selection import mutual_info_classif, mutual_info_regression
-from scipy.stats import entropy
-from statsmodels.tsa.holtwinters import ExponentialSmoothing
 from sklearn.preprocessing import LabelEncoder
+from statsmodels.tsa.holtwinters import ExponentialSmoothing
 
 # Ensure required packages are installed
 try:
@@ -18,29 +17,24 @@ except ImportError:
     import os
     os.system("pip install statsmodels")
 
-# Load dataset
+# Load dataset with caching
 @st.cache_data
 def load_data():
-    df = pd.read_excel("disease_trends_india_updated.xlsx")
+    df = pd.read_excel("")  # Ensure this file exists
     return df
 
 df = load_data()
-from sklearn.preprocessing import LabelEncoder
 
-encoder = LabelEncoder()
-X_train_c = X_train_c.apply(lambda col: encoder.fit_transform(col) if col.dtype == 'object' else col)
-X_test_c = X_test_c.apply(lambda col: encoder.transform(col) if col.dtype == 'object' else col)
-X_train_c.fillna(X_train_c.mode().iloc[0], inplace=True)
-y_train_c.fillna(y_train_c.mode().iloc[0], inplace=True)
-
-
-# Encode categorical target variable
+# Encode categorical variables
 label_encoder = LabelEncoder()
-y_classification = label_encoder.fit_transform(df["Disease Name"].astype(str))
 
-df.fillna(method='ffill', inplace=True)  # Handle missing values
+# Encode target variable (Disease Name)
+df["Disease Name"] = label_encoder.fit_transform(df["Disease Name"].astype(str))
 
-# Sidebar
+# Handle missing values
+df.fillna(method='ffill', inplace=True)
+
+# Sidebar options
 st.sidebar.title("🔬 Disease Prediction Dashboard")
 option = st.sidebar.radio("Select Model Type", ["Classification", "Regression"])
 
@@ -51,11 +45,25 @@ st.dataframe(df.head())
 # Feature selection
 features = ['Year', 'Number of Cases', 'Number of Deaths', 'Monthly Cases']
 X = df[features].fillna(df[features].median(numeric_only=True))
-y_regression = df["Number of Cases"]
+y_classification = df["Disease Name"]  # Encoded categorical target
+y_regression = df["Number of Cases"]  # Numeric target for regression
 
+# Splitting data for classification & regression
 X_train_c, X_test_c, y_train_c, y_test_c = train_test_split(X, y_classification, test_size=0.2, random_state=42)
 X_train_r, X_test_r, y_train_r, y_test_r = train_test_split(X, y_regression, test_size=0.2, random_state=42)
 
+# Apply encoding to categorical columns
+encoder = LabelEncoder()
+for col in X_train_c.columns:
+    if X_train_c[col].dtype == 'object':
+        X_train_c[col] = encoder.fit_transform(X_train_c[col])
+        X_test_c[col] = encoder.transform(X_test_c[col])
+
+# Fill missing values
+X_train_c.fillna(X_train_c.median(), inplace=True)
+y_train_c.fillna(y_train_c.mode()[0], inplace=True)
+
+# Model Selection
 if option == "Classification":
     st.write("## 🤖 Disease Classification Model")
     
@@ -67,6 +75,7 @@ if option == "Classification":
     st.text("Classification Report:")
     st.text(classification_report(y_test_c, y_pred_c))
     
+    # Decision Tree Visualization
     fig, ax = plt.subplots(figsize=(12, 6))
     plot_tree(clf, feature_names=features, filled=True, fontsize=6)
     st.pyplot(fig)
@@ -81,6 +90,7 @@ elif option == "Regression":
     st.write("### R2 Score:", r2_score(y_test_r, y_pred_r))
     st.write("### Mean Squared Error:", mean_squared_error(y_test_r, y_pred_r))
     
+    # Scatter Plot (Actual vs Predicted)
     fig, ax = plt.subplots(figsize=(8, 5))
     plt.scatter(y_test_r, y_pred_r, alpha=0.5)
     plt.xlabel("Actual Cases")
@@ -88,6 +98,7 @@ elif option == "Regression":
     plt.title("Actual vs Predicted Cases")
     st.pyplot(fig)
     
+    # Residual Plot
     fig, ax = plt.subplots(figsize=(8, 5))
     residuals = y_test_r - y_pred_r
     plt.scatter(y_pred_r, residuals, alpha=0.5)
@@ -105,25 +116,27 @@ st.bar_chart(feature_importance)
 # Predicting Future Rise of Diseases
 st.write("## 🔮 Future Prediction of Disease Trends")
 future_years = 5
+
 for disease in df["Disease Name"].unique():
     disease_df = df[df["Disease Name"] == disease]
     
     if disease_df["Number of Cases"].dtype == 'O':  # Convert non-numeric cases
-        disease_df["Total Cases"] = pd.to_numeric(disease_df["Total Cases"], errors='coerce')
+        disease_df["Number of Cases"] = pd.to_numeric(disease_df["Number of Cases"], errors='coerce')
     
-    model = ExponentialSmoothing(disease_df["Total Cases"], trend="add", seasonal=None, damped_trend=True)
+    model = ExponentialSmoothing(disease_df["Number of Cases"], trend="add", seasonal=None, damped_trend=True)
     fitted_model = model.fit()
     future_predictions = fitted_model.forecast(future_years)
     
-    st.write(f"### {disease} - Predicted Cases for the Next {future_years} Years")
+    st.write(f"### {label_encoder.inverse_transform([disease])[0]} - Predicted Cases for the Next {future_years} Years")
     future_index = list(range(df["Year"].max() + 1, df["Year"].max() + 1 + future_years))
     pred_df = pd.DataFrame({"Year": future_index, "Predicted Cases": future_predictions})
     st.dataframe(pred_df)
     
+    # Line Plot for Predictions
     fig, ax = plt.subplots(figsize=(8, 5))
-    sns.lineplot(x=df["Year"], y=df["Total Cases"], data=disease_df, marker="o", label="Historical Data")
+    sns.lineplot(x=df["Year"], y=df["Number of Cases"], data=disease_df, marker="o", label="Historical Data")
     sns.lineplot(x=future_index, y=future_predictions, marker="o", linestyle="dashed", label="Predicted Data")
-    plt.title(f"{disease} - Future Predictions")
+    plt.title(f"{label_encoder.inverse_transform([disease])[0]} - Future Predictions")
     st.pyplot(fig)
 
 st.sidebar.write("👨‍💻 Developed for VS Code + Streamlit 🚀")

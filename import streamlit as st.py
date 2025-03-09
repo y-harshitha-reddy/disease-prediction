@@ -20,6 +20,27 @@ from statsmodels.tsa.holtwinters import ExponentialSmoothing
 def load_data():
     df = pd.read_excel("disease_trends_india_cleaned.xlsx")  # Ensure the file exists
     return df
+    from sklearn.preprocessing import LabelEncoder
+
+# List of categorical columns
+categorical_columns = [
+    "Disease Name", "State/Region", "Season/Month", "Age Group Affected",
+    "Gender Distribution", "Urban/Rural Classification", "Comorbidities",
+    "Lockdown Measures", "Vaccination Drive"
+]
+
+# Apply Label Encoding to categorical columns
+label_encoders = {}
+for col in categorical_columns:
+    le = LabelEncoder()
+    df[col] = le.fit_transform(df[col].astype(str))  # Convert to string & encode
+    label_encoders[col] = le
+
+# Drop unnecessary columns
+df.drop(columns=["Image URL"], inplace=True, errors="ignore")
+
+# Now df is fully numeric and ready for model training
+
 
 df = load_data()
 

@@ -4,7 +4,6 @@ numpy
 seaborn
 matplotlib
 scikit-learn
-scipy
 statsmodels
+scipy
 openpyxl
-

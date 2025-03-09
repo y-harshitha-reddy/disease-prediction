@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.metrics import accuracy_score, precision_score, recall_score
 
-def load_data(file_path):
+def load_data("disease_trends_india_cleaned_encoded.xlsx"):
     data = pd.read_excel(file_path, sheet_name="Sheet1")
     return data
 

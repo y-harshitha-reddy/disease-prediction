@@ -21,7 +21,7 @@ except ImportError:
 # Load dataset
 @st.cache_data
 def load_data():
-    df = pd.read_excel("disease_trends_india_updated.xlsx")
+    df = pd.read_excel("disease_trends_india_cleaned.xlsx")
     return df
 
 df = load_data()

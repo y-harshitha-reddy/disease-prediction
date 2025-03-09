@@ -20,7 +20,7 @@ except ImportError:
 # Load dataset with caching
 @st.cache_data
 def load_data():
-    df = pd.read_excel("")  # Ensure this file exists
+    df = pd.read_excel("disease_trends_india_cleaned.xlsx")  # Ensure this file exists
     return df
 
 df = load_data()

@@ -1,8 +1,9 @@
-pandas
 streamlit
+pandas
+numpy
 matplotlib
 seaborn
+folium
+streamlit-folium
 scikit-learn
 openpyxl
-statsmodels
-scipy

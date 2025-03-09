@@ -25,6 +25,14 @@ def load_data():
     return df
 
 df = load_data()
+from sklearn.preprocessing import LabelEncoder
+
+encoder = LabelEncoder()
+X_train_c = X_train_c.apply(lambda col: encoder.fit_transform(col) if col.dtype == 'object' else col)
+X_test_c = X_test_c.apply(lambda col: encoder.transform(col) if col.dtype == 'object' else col)
+X_train_c.fillna(X_train_c.mode().iloc[0], inplace=True)
+y_train_c.fillna(y_train_c.mode().iloc[0], inplace=True)
+
 
 # Encode categorical target variable
 label_encoder = LabelEncoder()

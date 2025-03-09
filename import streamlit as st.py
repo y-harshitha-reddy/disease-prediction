@@ -10,13 +10,6 @@ from sklearn.feature_selection import mutual_info_classif, mutual_info_regressio
 from scipy.stats import entropy
 from sklearn.preprocessing import LabelEncoder
 
-# Ensure required packages are installed
-try:
-    import statsmodels
-except ImportError:
-    import os
-    os.system("pip install statsmodels")
-
 # Load dataset
 @st.cache_data
 def load_data():
@@ -94,21 +87,7 @@ st.bar_chart(feature_importance)
 
 # Information Gain Calculation
 st.write("## 📈 Information Gain Calculation")
-def compute_information_gain(X, y):
-    total_entropy = entropy(np.bincount(y))
-    info_gains = []
-    for col in X.columns:
-        unique_values = X[col].unique()
-        weighted_entropy = 0
-        for value in unique_values:
-            subset_y = y[X[col] == value]
-            weighted_entropy += (len(subset_y) / len(y)) * entropy(np.bincount(subset_y))
-        info_gains.append(total_entropy - weighted_entropy)
-    return info_gains
 
-info_gain_values = compute_information_gain(X, y_classification)
-info_gain_series = pd.Series(info_gain_values, index=features).sort_values(ascending=False)
-st.bar_chart(info_gain_series)
 
 # Correlation Heatmap
 st.write("## 📌 Correlation Heatmap")

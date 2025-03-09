@@ -35,6 +35,21 @@ y_regression = df["Number of Cases"]
 
 X_train_c, X_test_c, y_train_c, y_test_c = train_test_split(X, y_classification, test_size=0.2, random_state=42)
 X_train_r, X_test_r, y_train_r, y_test_r = train_test_split(X, y_regression, test_size=0.2, random_state=42)
+# Handle missing values
+X_train_c.fillna(X_train_c.median(), inplace=True)
+y_train_c.fillna(y_train_c.mode()[0], inplace=True)
+
+# Convert all features to numeric
+X_train_c = X_train_c.apply(pd.to_numeric, errors='coerce')
+X_train_c.fillna(0, inplace=True)  # Fill any remaining NaNs
+
+# Ensure target labels are integers
+y_train_c = y_train_c.astype(int)
+
+# Train the classification model
+clf = DecisionTreeClassifier(max_depth=5, random_state=42)
+clf.fit(X_train_c, y_train_c)  # This should now work without errors
+
 
 if option == "Classification":
     st.write("## 🤖 Decision Tree Classification Model")

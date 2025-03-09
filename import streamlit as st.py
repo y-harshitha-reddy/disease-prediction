@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.metrics import accuracy_score, precision_score, recall_score
 
-def load_data("disease_trends_india_cleaned.xlsx"):
+def load_data(file_path):
     data = pd.read_excel(file_path, sheet_name="Sheet1")
     return data
 
@@ -36,7 +36,7 @@ def preprocess_data(data):
 def compute_information_gain(model, X, y):
     return dict(zip(X.columns, model.feature_importances_))
 
-data = load_data("disease_trends_india_cleaned.xlsx")
+data = load_data("/mnt/data/disease_trends_india_cleaned_encoded.xlsx")
 X, y, scaler, label_encoders, numerical_columns, categorical_columns = preprocess_data(data)
 
 st.sidebar.header("🔍 Decision Tree Model")
